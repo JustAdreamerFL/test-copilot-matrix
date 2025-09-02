@@ -12,18 +12,24 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.matrixchat.R
+import com.matrixchat.viewmodel.LoginViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    onLoginSuccess: () -> Unit
+    onLoginSuccess: (LoginViewModel) -> Unit,
+    loginViewModel: LoginViewModel = viewModel()
 ) {
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var homeserver by remember { mutableStateOf("https://matrix.org") }
-    var isLoading by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
+    val uiState = loginViewModel.uiState
+
+    // Navigate when login is successful
+    LaunchedEffect(uiState.isLoggedIn) {
+        if (uiState.isLoggedIn) {
+            onLoginSuccess(loginViewModel)
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -40,68 +46,54 @@ fun LoginScreen(
         )
 
         OutlinedTextField(
-            value = homeserver,
-            onValueChange = { homeserver = it },
+            value = uiState.homeserver,
+            onValueChange = loginViewModel::updateHomeserver,
             label = { Text(stringResource(R.string.homeserver)) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 16.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+            enabled = !uiState.isLoading
         )
 
         OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
+            value = uiState.username,
+            onValueChange = loginViewModel::updateUsername,
             label = { Text(stringResource(R.string.username)) },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 16.dp),
+            enabled = !uiState.isLoading
         )
 
         OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
+            value = uiState.password,
+            onValueChange = loginViewModel::updatePassword,
             label = { Text(stringResource(R.string.password)) },
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(bottom = 24.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            enabled = !uiState.isLoading
         )
 
-        if (errorMessage.isNotEmpty()) {
+        if (uiState.errorMessage.isNotEmpty()) {
             Text(
-                text = errorMessage,
+                text = uiState.errorMessage,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
         }
 
         Button(
-            onClick = {
-                if (username.isNotEmpty() && password.isNotEmpty() && homeserver.isNotEmpty()) {
-                    isLoading = true
-                    // Simulate login for now
-                    // TODO: Implement actual Matrix login
-                    kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main).launch {
-                        kotlinx.coroutines.delay(2000) // Simulate network delay
-                        isLoading = false
-                        if (username.isNotEmpty()) { // Simple validation for demo
-                            onLoginSuccess()
-                        } else {
-                            errorMessage = "Login failed. Please check your credentials."
-                        }
-                    }
-                } else {
-                    errorMessage = "Please fill in all fields"
-                }
-            },
+            onClick = loginViewModel::login,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
-            enabled = !isLoading
+            enabled = !uiState.isLoading
         ) {
-            if (isLoading) {
+            if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
                     color = MaterialTheme.colorScheme.onPrimary

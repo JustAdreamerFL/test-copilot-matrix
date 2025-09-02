@@ -17,6 +17,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.matrixchat.R
 import com.matrixchat.ui.components.MessageItem
+import com.matrixchat.viewmodel.ChatViewModel
 
 data class Message(
     val id: String,
@@ -28,28 +29,10 @@ data class Message(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ChatScreen() {
-    var messageText by remember { mutableStateOf("") }
-    var messages by remember { 
-        mutableStateOf(
-            listOf(
-                Message(
-                    id = "1",
-                    content = "Welcome to Matrix Chat! This is a demo message.",
-                    sender = "System",
-                    timestamp = System.currentTimeMillis() - 60000,
-                    isFromCurrentUser = false
-                ),
-                Message(
-                    id = "2",
-                    content = "Hello! Nice to meet you.",
-                    sender = "You",
-                    timestamp = System.currentTimeMillis() - 30000,
-                    isFromCurrentUser = true
-                )
-            )
-        )
-    }
+fun ChatScreen(
+    chatViewModel: ChatViewModel
+) {
+    val uiState = chatViewModel.uiState
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -57,16 +40,44 @@ fun ChatScreen() {
         // Header
         TopAppBar(
             title = {
-                Text(
-                    text = "Matrix Chat",
-                    fontWeight = FontWeight.Bold
-                )
+                Column {
+                    Text(
+                        text = "Matrix Chat",
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = if (uiState.isConnected) "Connected" else "Disconnected",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = if (uiState.isConnected) 
+                            MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
+                        else 
+                            MaterialTheme.colorScheme.error
+                    )
+                }
             },
             colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary,
                 titleContentColor = MaterialTheme.colorScheme.onPrimary
             )
         )
+
+        // Error message
+        if (uiState.errorMessage.isNotEmpty()) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer
+                )
+            ) {
+                Text(
+                    text = uiState.errorMessage,
+                    modifier = Modifier.padding(16.dp),
+                    color = MaterialTheme.colorScheme.onErrorContainer
+                )
+            }
+        }
 
         // Messages list
         LazyColumn(
@@ -76,12 +87,19 @@ fun ChatScreen() {
                 .padding(horizontal = 16.dp),
             reverseLayout = true
         ) {
-            items(messages.reversed()) { message ->
+            items(uiState.messages.reversed()) { message ->
                 MessageItem(
                     message = message,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
             }
+        }
+
+        // Loading indicator
+        if (uiState.isLoading) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth()
+            )
         }
 
         // Message input
@@ -92,44 +110,21 @@ fun ChatScreen() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             OutlinedTextField(
-                value = messageText,
-                onValueChange = { messageText = it },
+                value = uiState.currentMessage,
+                onValueChange = chatViewModel::updateCurrentMessage,
                 placeholder = { Text(stringResource(R.string.type_message)) },
                 modifier = Modifier.weight(1f),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(
-                    onSend = {
-                        if (messageText.isNotEmpty()) {
-                            val newMessage = Message(
-                                id = System.currentTimeMillis().toString(),
-                                content = messageText,
-                                sender = "You",
-                                timestamp = System.currentTimeMillis(),
-                                isFromCurrentUser = true
-                            )
-                            messages = messages + newMessage
-                            messageText = ""
-                        }
-                    }
-                )
+                    onSend = { chatViewModel.sendMessage() }
+                ),
+                enabled = !uiState.isLoading
             )
 
             Spacer(modifier = Modifier.width(8.dp))
 
             FloatingActionButton(
-                onClick = {
-                    if (messageText.isNotEmpty()) {
-                        val newMessage = Message(
-                            id = System.currentTimeMillis().toString(),
-                            content = messageText,
-                            sender = "You",
-                            timestamp = System.currentTimeMillis(),
-                            isFromCurrentUser = true
-                        )
-                        messages = messages + newMessage
-                        messageText = ""
-                    }
-                },
+                onClick = chatViewModel::sendMessage,
                 modifier = Modifier.size(48.dp)
             ) {
                 Icon(

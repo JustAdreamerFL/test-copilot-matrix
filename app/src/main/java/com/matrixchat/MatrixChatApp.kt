@@ -12,28 +12,39 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.matrixchat.ui.screens.ChatScreen
 import com.matrixchat.ui.screens.LoginScreen
+import com.matrixchat.viewmodel.ChatViewModel
+import com.matrixchat.viewmodel.LoginViewModel
 
 @Composable
 fun MatrixChatApp() {
     val navController = rememberNavController()
+    var loginViewModel: LoginViewModel? by remember { mutableStateOf(null) }
     
     NavHost(
         navController = navController,
         startDestination = "login"
     ) {
         composable("login") {
+            val currentLoginViewModel: LoginViewModel = viewModel()
+            
             LoginScreen(
-                onLoginSuccess = {
+                onLoginSuccess = { viewModel ->
+                    loginViewModel = viewModel
                     navController.navigate("chat") {
                         popUpTo("login") { inclusive = true }
                     }
-                }
+                },
+                loginViewModel = currentLoginViewModel
             )
         }
         composable("chat") {
-            ChatScreen()
+            val matrixClient = loginViewModel?.getMatrixClient()
+            val chatViewModel = remember { ChatViewModel(matrixClient) }
+            
+            ChatScreen(chatViewModel = chatViewModel)
         }
     }
 }
