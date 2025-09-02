@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">Matrix Chat</string>
+    <string name="login">Login</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="homeserver">Homeserver URL</string>
+    <string name="chat">Chat</string>
+    <string name="send">Send</string>
+    <string name="type_message">Type a message...</string>
+    <string name="connecting">Connecting...</string>
+    <string name="connected">Connected</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="login_error">Login failed. Please check your credentials.</string>
+</resources>
