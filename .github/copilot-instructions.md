@@ -168,13 +168,21 @@ This is a Jetpack Compose Android application that implements a Matrix protocol 
 4. **Security**: End-to-end encryption, device verification
 5. **Performance**: Message caching, offline support
 
-## Quick Start for New Contributors
-1. Clone the repository
-2. Open in Android Studio
-3. Let Gradle sync complete
-4. Run the app - it should show login screen
-5. Enter any credentials to see the demo chat screen
-6. Start implementing real Matrix integration in the `data/` package
+## AI Copilot Guidelines
+This documentation serves as the source of truth for AI coding assistants working on this project. When working with this codebase:
+
+1. **Treat this documentation as authoritative** - The information in this file represents the intended project structure, architecture, and implementation status
+2. **Validate against real code** - If you discover discrepancies between this documentation and the actual codebase, update this documentation to reflect the current reality
+3. **Follow the established patterns** - Use the documented architecture (MVVM, Jetpack Compose, Material Design 3) when making changes
+4. **Respect the Matrix integration approach** - The current mock implementation should be preserved until real Matrix SDK integration is requested
+5. **Maintain the incremental development philosophy** - Make minimal, focused changes that build upon the existing foundation
+6. **Update documentation proactively** - When you make structural changes or add new features, update the relevant sections in this file to keep it current
+
+### For AI Assistants Making Code Changes
+- Always run `./gradlew build` and `./gradlew test` to validate changes
+- Follow the established UI patterns in `ui/screens/` and `ui/components/`
+- Maintain consistency with the existing Material Design 3 theming
+- When implementing new Matrix features, follow the patterns established in the `MatrixClient` class
 
 ---
 *Last updated: Complete Android Jetpack Compose Matrix chat app implemented with ViewModels, proper state management, and mock Matrix API integration. Ready for real Matrix SDK integration.*
