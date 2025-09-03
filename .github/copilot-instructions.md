@@ -183,6 +183,7 @@ This documentation serves as the source of truth for AI coding assistants workin
 - Follow the established UI patterns in `ui/screens/` and `ui/components/`
 - Maintain consistency with the existing Material Design 3 theming
 - When implementing new Matrix features, follow the patterns established in the `MatrixClient` class
+- If not asked by user, don’t edit readme.md of the whole repository
 
 ---
 *Last updated: Complete Android Jetpack Compose Matrix chat app implemented with ViewModels, proper state management, and mock Matrix API integration. Ready for real Matrix SDK integration.*
