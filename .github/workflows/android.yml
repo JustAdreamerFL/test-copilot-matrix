@@ -3,8 +3,12 @@ name: Android CI
 on:
   push:
     branches: [ "main", "develop" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -44,6 +48,10 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew assembleDebug --stacktrace
 
+    - name: Build release APK
+      if: startsWith(github.ref, 'refs/tags/')
+      run: ./gradlew assembleRelease --stacktrace
+
     - name: Run tests
       run: ./gradlew test --stacktrace
 
@@ -53,3 +61,19 @@ jobs:
       with:
         name: debug-apk
         path: app/build/outputs/apk/debug/app-debug.apk
+
+    - name: Verify release APK exists
+      if: startsWith(github.ref, 'refs/tags/')
+      run: ls -la app/build/outputs/apk/release/
+
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          app/build/outputs/apk/release/app-release-unsigned.apk
+        generate_release_notes: true
+        draft: false
+        prerelease: false
+        name: Matrix Chat App ${{ github.ref_name }}
+        tag_name: ${{ github.ref_name }}
